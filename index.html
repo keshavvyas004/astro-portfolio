@@ -497,17 +497,8 @@
   <div class="add-form-wrap">
     <h3>Add New Image</h3>
 
-    <p class="spec-label" style="margin-bottom:14px; color: var(--violet);">GitHub Configuration</p>
-    <div class="form-grid" style="margin-bottom: 24px; padding: 14px; border: 1px dashed var(--border); background: rgba(139,92,246,0.03);">
-      <div class="form-row" style="margin-bottom: 0;">
-        <label>Repo Path (username/repo)</label>
-        <input type="text" id="gh-repo" placeholder="e.g. kvvyas/astro-portfolio">
-      </div>
-      <div class="form-row" style="margin-bottom: 0;">
-        <label>Personal Access Token (PAT)</label>
-        <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxx">
-      </div>
-    </div>
+    <input type="hidden" id="gh-repo">
+    <input type="hidden" id="gh-token">
 
     <div id="img-preview">
       <img id="preview-img" alt="preview">
@@ -656,9 +647,9 @@ let activeFilter = 'all';
 let rawImageBase64 = null;
 let rawImageFilename = "";
 
-// Auto load configurations if present locally for ease of use
-document.getElementById('gh-repo').value = localStorage.getItem('astro_gh_repo') || '';
-document.getElementById('gh-token').value = localStorage.getItem('astro_gh_token') || '';
+// Hardcoded Credentials so fields remain hidden safely
+document.getElementById('gh-repo').value = "keshavvyas/astro-portfolio";
+document.getElementById('gh-token').value = "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";
 
 /* ── FETCH PORTFOLIO IMAGES ON INITIAL LOAD FROM GITHUB DATA.JSON ── */
 async function loadGalleryData() {
@@ -668,7 +659,7 @@ async function loadGalleryData() {
     document.getElementById('grid').innerHTML = `
       <div class="empty-grid">
         <div class="big">⚙️</div>
-        <p>Please click the <strong style="color:var(--cyan)">+</strong> button and fill out your GitHub settings to link data storage.</p>
+        <p>Configuration error. Check repository variables.</p>
       </div>`;
     return;
   }
@@ -687,6 +678,9 @@ async function loadGalleryData() {
     document.getElementById('count-label').textContent = 'Sync Error';
   }
 }
+
+// Trigger initialization immediately
+loadGalleryData();
 
 /* ── GLOW COLORS by object type ── */
 const glowMap = {
@@ -842,13 +836,9 @@ document.getElementById('save-btn').addEventListener('click', async () => {
   const token = document.getElementById('gh-token').value.trim();
   const name = document.getElementById('f-name').value.trim();
 
-  if (!repo || !token) { alert('Please enter your GitHub repository path and personal access token.'); return; }
+  if (!repo || !token) { alert('GitHub credentials missing from source initialization script configuration.'); return; }
   if (!name) { alert('Please enter an object name.'); return; }
   if (!rawImageBase64) { alert('Please select an image file to upload.'); return; }
-
-  // Temporarily store token data into local machine space
-  localStorage.setItem('astro_gh_repo', repo);
-  localStorage.setItem('astro_gh_token', token);
 
   const saveBtn = document.getElementById('save-btn');
   saveBtn.disabled = true;
@@ -928,13 +918,12 @@ document.getElementById('save-btn').addEventListener('click', async () => {
     currentRemoteList.unshift(entry);
 
     // 4. Push updated data array object up to database tracking system
-    // Handle UTF-8 encoding strings safely inside Base64 limits
     const encoder = new TextEncoder();
     const dataUint8 = encoder.encode(JSON.stringify(currentRemoteList, null, 2));
     const base64JsonBody = btoa(String.fromCharCode.apply(null, dataUint8));
 
     const jsonCommitBody = {
-      message: `🗃️ database cluster log update: sync index item entry - ${name}`,
+      message: `🗃️ database cluster log update: sync index item & entry asset - ${name}`,
       content: base64JsonBody
     };
     if (shaKey) jsonCommitBody.sha = shaKey;
@@ -951,18 +940,17 @@ document.getElementById('save-btn').addEventListener('click', async () => {
 
     alert('Successfully updated portfolio gallery directly on GitHub!');
     
-    // UI Housekeeping resets
     closeAdd();
     resetForm();
     
-    // Refresh list data index values safely
+    // Dynamically update UI parameters cleanly without requiring a hard refresh reload
     images = currentRemoteList;
     renderFilters();
     renderGrid();
     document.getElementById('gallery').scrollIntoView({ behavior: 'smooth' });
 
   } catch (error) {
-    alert(`Error handling GitHub upload operation sequence: ${error.message}`);
+    alert(`GitHub API Gateway Error: ${error.message}`);
     console.error(error);
   } finally {
     saveBtn.disabled = false;
@@ -977,14 +965,10 @@ function resetForm() {
   document.getElementById('f-type').selectedIndex = 0;
   const pimg = document.getElementById('preview-img');
   pimg.src = ''; pimg.style.display = 'none';
-  document.getElementById('preview-placeholder').style.display = '';
-  document.getElementById('file-input').value = '';
+  document.getElementById('preview-placeholder').style.display = 'block';
   rawImageBase64 = null;
   rawImageFilename = "";
 }
-
-/* ── INIT ON LOAD ── */
-loadGalleryData();
 </script>
 </body>
 </html>
