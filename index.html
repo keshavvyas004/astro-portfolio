@@ -368,6 +368,7 @@
     letter-spacing: 0.06em; transition: opacity 0.2s;
   }
   .btn-primary:hover { opacity: 0.85; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
   .btn-secondary {
     padding: 11px 24px; background: transparent;
     border: 1px solid var(--border); color: var(--dim);
@@ -411,7 +412,6 @@
 </head>
 <body>
 
-<!-- NAV -->
 <nav>
   <a class="nav-logo" href="#hero">Event<span>Horizon</span></a>
   <div class="nav-links">
@@ -420,7 +420,6 @@
   </div>
 </nav>
 
-<!-- HERO -->
 <section id="hero">
   <canvas id="starfield"></canvas>
   <div class="hero-content">
@@ -435,11 +434,10 @@
   </div>
 </section>
 
-<!-- GALLERY -->
 <section id="gallery">
   <div class="section-header">
     <h2 class="section-title">Gallery</h2>
-    <span class="section-count" id="count-label">0 images</span>
+    <span class="section-count" id="count-label">Loading images...</span>
   </div>
 
   <div class="filter-bar" id="filter-bar">
@@ -449,12 +447,11 @@
   <div class="grid" id="grid">
     <div class="empty-grid" id="empty-state">
       <div class="big">✦</div>
-      <p>No images yet. Click the <strong style="color:var(--cyan)">+</strong> button to add your first capture.</p>
+      <p>Syncing database with GitHub...</p>
     </div>
   </div>
 </section>
 
-<!-- ABOUT -->
 <section id="about">
   <h2>About Event Horizon</h2>
   <p>Passionate about deep-sky imaging, I spend clear nights collecting photons from objects millions of light-years away. Each image is a stack of many hours of exposure, processed in SiriL and Photoshop to reveal the cosmic details hidden in faint starlight.</p>
@@ -465,7 +462,6 @@
   <span class="footer-note">All images are processed by Keshav vyas</span>
 </footer>
 
-<!-- IMAGE VIEWER MODAL -->
 <div id="modal" role="dialog" aria-modal="true">
   <div class="modal-inner">
     <div class="modal-img-wrap">
@@ -497,10 +493,21 @@
   </div>
 </div>
 
-<!-- ADD IMAGE MODAL -->
 <div id="add-modal">
   <div class="add-form-wrap">
     <h3>Add New Image</h3>
+
+    <p class="spec-label" style="margin-bottom:14px; color: var(--violet);">GitHub Configuration</p>
+    <div class="form-grid" style="margin-bottom: 24px; padding: 14px; border: 1px dashed var(--border); background: rgba(139,92,246,0.03);">
+      <div class="form-row" style="margin-bottom: 0;">
+        <label>Repo Path (username/repo)</label>
+        <input type="text" id="gh-repo" placeholder="e.g. kvvyas/astro-portfolio">
+      </div>
+      <div class="form-row" style="margin-bottom: 0;">
+        <label>Personal Access Token (PAT)</label>
+        <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxx">
+      </div>
+    </div>
 
     <div id="img-preview">
       <img id="preview-img" alt="preview">
@@ -593,13 +600,12 @@
     </div>
 
     <div class="form-actions">
-      <button class="btn-primary" id="save-btn">Add to Gallery</button>
+      <button class="btn-primary" id="save-btn">Push to GitHub</button>
       <button class="btn-secondary" id="cancel-add">Cancel</button>
     </div>
   </div>
 </div>
 
-<!-- ADD BUTTON -->
 <button class="add-btn" id="add-btn" title="Add new image">+</button>
 
 <script>
@@ -644,11 +650,43 @@
   window.addEventListener('resize', () => { resize(); seed(); });
 })();
 
-/* ── DATA STORE ── */
-let images = JSON.parse(localStorage.getItem('astro_images') || '[]');
+/* ── DATA STORE (GITHUB REMOTED) ── */
+let images = [];
 let activeFilter = 'all';
+let rawImageBase64 = null;
+let rawImageFilename = "";
 
-function save() { localStorage.setItem('astro_images', JSON.stringify(images)); }
+// Auto load configurations if present locally for ease of use
+document.getElementById('gh-repo').value = localStorage.getItem('astro_gh_repo') || '';
+document.getElementById('gh-token').value = localStorage.getItem('astro_gh_token') || '';
+
+/* ── FETCH PORTFOLIO IMAGES ON INITIAL LOAD FROM GITHUB DATA.JSON ── */
+async function loadGalleryData() {
+  const repo = document.getElementById('gh-repo').value.trim();
+  if(!repo) {
+    document.getElementById('count-label').textContent = '0 images';
+    document.getElementById('grid').innerHTML = `
+      <div class="empty-grid">
+        <div class="big">⚙️</div>
+        <p>Please click the <strong style="color:var(--cyan)">+</strong> button and fill out your GitHub settings to link data storage.</p>
+      </div>`;
+    return;
+  }
+  
+  try {
+    const res = await fetch(`https://raw.githubusercontent.com/${repo}/main/data.json?t=${Date.now()}`);
+    if (res.ok) {
+      images = await res.json();
+    } else {
+      images = []; // fallback if data.json doesn't exist yet
+    }
+    renderFilters();
+    renderGrid();
+  } catch(err) {
+    console.error("Failed to load database index file from github:", err);
+    document.getElementById('count-label').textContent = 'Sync Error';
+  }
+}
 
 /* ── GLOW COLORS by object type ── */
 const glowMap = {
@@ -663,7 +701,6 @@ const glowMap = {
 /* ── RENDER GRID ── */
 function renderGrid() {
   const grid = document.getElementById('grid');
-  const empty = document.getElementById('empty-state');
   const filtered = activeFilter === 'all'
     ? images
     : images.filter(img => img.type === activeFilter);
@@ -779,57 +816,158 @@ function closeAdd() {
   document.body.style.overflow = '';
 }
 
-// Image preview
+// Track file selection and read file binary
 document.getElementById('file-input').addEventListener('change', function() {
   const file = this.files[0];
   if (!file) return;
+  
+  rawImageFilename = `${Date.now()}-${file.name.replace(/\s+/g, '-').toLowerCase()}`;
   const reader = new FileReader();
+  
   reader.onload = e => {
     const pimg = document.getElementById('preview-img');
     pimg.src = e.target.result;
     pimg.style.display = 'block';
     document.getElementById('preview-placeholder').style.display = 'none';
+    
+    // Save string output parsed as raw Base64 payload data
+    rawImageBase64 = e.target.result.split(',')[1];
   };
   reader.readAsDataURL(file);
 });
 
-// Save
-document.getElementById('save-btn').addEventListener('click', () => {
+/* ── GITHUB API PUSH SYSTEM LOGIC ── */
+document.getElementById('save-btn').addEventListener('click', async () => {
+  const repo = document.getElementById('gh-repo').value.trim();
+  const token = document.getElementById('gh-token').value.trim();
   const name = document.getElementById('f-name').value.trim();
-  const src = document.getElementById('preview-img').src;
+
+  if (!repo || !token) { alert('Please enter your GitHub repository path and personal access token.'); return; }
   if (!name) { alert('Please enter an object name.'); return; }
-  if (!src || src === window.location.href) { alert('Please select an image file.'); return; }
+  if (!rawImageBase64) { alert('Please select an image file to upload.'); return; }
 
-  const rawFilters = document.getElementById('f-filters').value;
-  const filters = rawFilters.split(',').map(f => f.trim()).filter(Boolean);
+  // Temporarily store token data into local machine space
+  localStorage.setItem('astro_gh_repo', repo);
+  localStorage.setItem('astro_gh_token', token);
 
-  const entry = {
-    id: Date.now(),
-    src,
-    name,
-    type: document.getElementById('f-type').value,
-    desc: document.getElementById('f-desc').value.trim(),
-    scope: document.getElementById('f-scope').value.trim(),
-    mount: document.getElementById('f-mount').value.trim(),
-    camera: document.getElementById('f-camera').value.trim(),
-    focal: document.getElementById('f-focal').value.trim(),
-    total: document.getElementById('f-total').value.trim(),
-    sub: document.getElementById('f-sub').value.trim(),
-    gain: document.getElementById('f-gain').value.trim(),
-    date: document.getElementById('f-date').value,
-    bortle: document.getElementById('f-bortle').value.trim(),
-    location: document.getElementById('f-location').value.trim(),
-    filters,
-    software: document.getElementById('f-software').value.trim(),
-  };
+  const saveBtn = document.getElementById('save-btn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = "Uploading Image...";
 
-  images.unshift(entry);
-  save();
-  closeAdd();
-  resetForm();
-  renderFilters();
-  renderGrid();
-  document.getElementById('gallery').scrollIntoView({ behavior: 'smooth' });
+  try {
+    const authHeader = {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    };
+
+    // 1. Send structural payload to commit raw photo asset inside images/ directory
+    const imgPath = `images/${rawImageFilename}`;
+    const imgUploadUrl = `https://api.github.com/repos/${repo}/contents/${imgPath}`;
+    
+    const imageCommitBody = {
+      message: `📸 system upload: added raw asset context - ${name}`,
+      content: rawImageBase64
+    };
+
+    const imgResponse = await fetch(imgUploadUrl, {
+      method: 'PUT',
+      headers: authHeader,
+      body: JSON.stringify(imageCommitBody)
+    });
+
+    if (!imgResponse.ok) {
+      throw new Error(`Failed uploading file image block. Check repo permissions.`);
+    }
+
+    saveBtn.textContent = "Updating Database index...";
+
+    // 2. Fetch the target data.json file status signature to retrieve reference sha keys
+    const jsonUrl = `https://api.github.com/repos/${repo}/contents/data.json`;
+    let shaKey = null;
+    let currentRemoteList = [];
+
+    const jsonMetaRes = await fetch(jsonUrl, { headers: authHeader });
+    if (jsonMetaRes.ok) {
+      const jsonMeta = await jsonMetaRes.json();
+      shaKey = jsonMeta.sha;
+      // Decode content data base64 chain arrays natively
+      const decodedContent = decodeURIComponent(atob(jsonMeta.content.replace(/\s/g, '')).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      currentRemoteList = JSON.parse(decodedContent);
+    }
+
+    // 3. Append the new schema item to the list
+    const rawFilters = document.getElementById('f-filters').value;
+    const filters = rawFilters.split(',').map(f => f.trim()).filter(Boolean);
+    
+    // Construct CDN URL pointing directly to the uploaded image in your repository
+    const publicImageCdnUrl = `https://raw.githubusercontent.com/${repo}/main/${imgPath}`;
+
+    const entry = {
+      id: Date.now(),
+      src: publicImageCdnUrl,
+      name,
+      type: document.getElementById('f-type').value,
+      desc: document.getElementById('f-desc').value.trim(),
+      scope: document.getElementById('f-scope').value.trim(),
+      mount: document.getElementById('f-mount').value.trim(),
+      camera: document.getElementById('f-camera').value.trim(),
+      focal: document.getElementById('f-focal').value.trim(),
+      total: document.getElementById('f-total').value.trim(),
+      sub: document.getElementById('f-sub').value.trim(),
+      gain: document.getElementById('f-gain').value.trim(),
+      date: document.getElementById('f-date').value,
+      bortle: document.getElementById('f-bortle').value.trim(),
+      location: document.getElementById('f-location').value.trim(),
+      filters,
+      software: document.getElementById('f-software').value.trim(),
+    };
+
+    currentRemoteList.unshift(entry);
+
+    // 4. Push updated data array object up to database tracking system
+    // Handle UTF-8 encoding strings safely inside Base64 limits
+    const encoder = new TextEncoder();
+    const dataUint8 = encoder.encode(JSON.stringify(currentRemoteList, null, 2));
+    const base64JsonBody = btoa(String.fromCharCode.apply(null, dataUint8));
+
+    const jsonCommitBody = {
+      message: `🗃️ database cluster log update: sync index item entry - ${name}`,
+      content: base64JsonBody
+    };
+    if (shaKey) jsonCommitBody.sha = shaKey;
+
+    const finalJsonUpdateRes = await fetch(jsonUrl, {
+      method: 'PUT',
+      headers: authHeader,
+      body: JSON.stringify(jsonCommitBody)
+    });
+
+    if (!finalJsonUpdateRes.ok) {
+      throw new Error(`Failed to commit new index update mapping to data.json`);
+    }
+
+    alert('Successfully updated portfolio gallery directly on GitHub!');
+    
+    // UI Housekeeping resets
+    closeAdd();
+    resetForm();
+    
+    // Refresh list data index values safely
+    images = currentRemoteList;
+    renderFilters();
+    renderGrid();
+    document.getElementById('gallery').scrollIntoView({ behavior: 'smooth' });
+
+  } catch (error) {
+    alert(`Error handling GitHub upload operation sequence: ${error.message}`);
+    console.error(error);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = "Push to GitHub";
+  }
 });
 
 function resetForm() {
@@ -841,11 +979,12 @@ function resetForm() {
   pimg.src = ''; pimg.style.display = 'none';
   document.getElementById('preview-placeholder').style.display = '';
   document.getElementById('file-input').value = '';
+  rawImageBase64 = null;
+  rawImageFilename = "";
 }
 
-/* ── INIT ── */
-renderFilters();
-renderGrid();
+/* ── INIT ON LOAD ── */
+loadGalleryData();
 </script>
 </body>
 </html>
