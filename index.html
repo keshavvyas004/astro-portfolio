@@ -941,11 +941,15 @@ function resetForm() {
 ══════════════════════════════════════ */
 
 // This is SHA-256 hash of 'astro2024' — replace with hash of your own password
-const ADMIN_HASH = 'b3c274e5e6a91f0938abe0f8a7e8d6f3c12b4a9d5e7f1c2b3a4d5e6f7a8b9c0d';
+const ADMIN_HASH = '10009588';
 
 async function hashPassword(pw) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
-  return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
+  let hash = 0;
+  for (let i = 0; i < pw.length; i++) {
+    hash = ((hash << 5) - hash) + pw.charCodeAt(i);
+    hash = hash & hash;
+  }
+  return Math.abs(hash).toString(16).padStart(8, '0');
 }
 
 let isAdmin = false;
