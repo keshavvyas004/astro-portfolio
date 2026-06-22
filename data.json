@@ -1,5 +1,28 @@
 [
   {
+    "id": 1782151445727,
+    "ghPath": "images/ngc-6960-veil-nebula-1782151436196.png",
+    "name": "NGC 6960 : Veil Nebula",
+    "type": "Nebula",
+    "desc": "The Veil Nebula is one of the most spectacular and detailed supernova remnants in the night sky. Located approximately 2,100 light-years away in the constellation Cygnus (the Swan), it forms the visible portions of the Cygnus Loop.",
+    "scope": "PIRATE (Open University) · laneWave CDK24",
+    "mount": "10Micron GM4000",
+    "camera": "FLI (Finger Lakes Instrumentation) ProLine KAF-16803 CCD",
+    "focal": "3974",
+    "total": "3h 50m",
+    "sub": "360",
+    "gain": "",
+    "date": "2026-06-20",
+    "bortle": "",
+    "location": "Observatorio del Teide, Tenerife, Canary Islands",
+    "filters": [
+      "Ha",
+      "OIII",
+      "SII"
+    ],
+    "software": "SiriL"
+  },
+  {
     "id": 1782129942669,
     "ghPath": "images/ngc-helix-nebula-1782129933051.png",
     "name": "NGC 7293 : Helix Nebula",
