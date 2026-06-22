@@ -5,7 +5,7 @@
     "name": "NGC 6960 : Veil Nebula",
     "type": "Nebula",
     "desc": "The Veil Nebula is one of the most spectacular and detailed supernova remnants in the night sky. Located approximately 2,100 light-years away in the constellation Cygnus (the Swan), it forms the visible portions of the Cygnus Loop.",
-    "scope": "PIRATE (Open University) · laneWave CDK24",
+    "scope": "PIRATE (Open University) · PlaneWave CDK24",
     "mount": "10Micron GM4000",
     "camera": "FLI (Finger Lakes Instrumentation) ProLine KAF-16803 CCD",
     "focal": "3974",
