@@ -298,7 +298,7 @@
   <div class="nav-links">
     <a href="#gallery">Gallery</a>
     <a href="#about">About</a>
-    <button class="settings-btn" id="open-settings">&#9881; GitHub</button>
+    <button class="settings-btn" id="open-settings" style="display:none">&#9881; GitHub</button>
   </div>
 </nav>
 
@@ -329,7 +329,7 @@
   <div class="grid" id="grid">
     <div class="empty-grid">
       <div class="big">&#10022;</div>
-      <p>Connect GitHub first via the <strong style="color:var(--cyan)">&#9881; GitHub</strong> button, then click <strong style="color:var(--cyan)">+</strong> to add your first capture.</p>
+      <p>No images yet — check back soon.</p>
     </div>
   </div>
 </section>
@@ -479,8 +479,24 @@
 </div>
 
 <!-- ADD BUTTON -->
-<button class="add-btn" id="add-btn" title="Add new image">+</button>
+<button class="add-btn" id="add-btn" title="Add new image" style="display:none">+</button>
 <div id="toast"></div>
+
+<!-- ADMIN LOGIN MODAL -->
+<div class="overlay-modal" id="login-modal">
+  <div class="form-wrap" style="max-width:360px;text-align:center">
+    <p style="font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:8px">Admin Access</p>
+    <p style="color:var(--dim);font-size:0.82rem;margin-bottom:24px">Enter your password to manage the portfolio.</p>
+    <div class="form-row">
+      <input type="password" id="admin-password" placeholder="Password" style="text-align:center;letter-spacing:0.2em">
+    </div>
+    <div class="form-actions" style="justify-content:center">
+      <button class="btn-primary" id="login-btn">Unlock</button>
+      <button class="btn-secondary" id="cancel-login">Cancel</button>
+    </div>
+    <p id="login-error" style="color:var(--red);font-size:0.78rem;margin-top:12px;display:none">Incorrect password.</p>
+  </div>
+</div>
 
 <script>
 /* STARFIELD */
@@ -632,9 +648,7 @@ function renderGrid() {
     e.className = 'empty-grid';
     e.innerHTML = '<div class="big">&#10022;</div><p>' +
       (images.length === 0
-        ? (isConfigured()
-            ? 'No images yet. Click <strong style="color:var(--cyan)">+</strong> to add your first capture.'
-            : 'Connect GitHub first via the <strong style="color:var(--cyan)">&#9881; GitHub</strong> button, then click <strong style="color:var(--cyan)">+</strong> to add your first capture.')
+        ? (isAdmin ? 'No images yet. Click <strong style="color:var(--cyan)">+</strong> to add your first capture.' : 'No images yet — check back soon.')
         : 'No images in this category.') + '</p>';
     grid.appendChild(e);
     return;
@@ -815,9 +829,84 @@ function resetForm() {
   currentFile = null;
 }
 
+/* ══════════════════════════════════════
+   ADMIN PASSWORD SYSTEM
+   Change ADMIN_PASSWORD below to your own password
+══════════════════════════════════════ */
+const ADMIN_PASSWORD = 'astro2024'; // <-- CHANGE THIS to your own password
+
+let isAdmin = false;
+
+// Secret: click the nav logo 5 times to open admin login
+let logoClicks = 0, logoTimer = null;
+document.querySelector('.nav-logo').addEventListener('click', function(e) {
+  e.preventDefault();
+  logoClicks++;
+  clearTimeout(logoTimer);
+  logoTimer = setTimeout(() => logoClicks = 0, 2000);
+  if (logoClicks >= 5) {
+    logoClicks = 0;
+    openAdminLogin();
+  }
+});
+
+function openAdminLogin() {
+  document.getElementById('admin-password').value = '';
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('login-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('admin-password').focus(), 100);
+}
+
+document.getElementById('login-btn').addEventListener('click', checkPassword);
+document.getElementById('admin-password').addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
+document.getElementById('cancel-login').addEventListener('click', () => {
+  document.getElementById('login-modal').classList.remove('open');
+  document.body.style.overflow = '';
+});
+
+function checkPassword() {
+  const entered = document.getElementById('admin-password').value;
+  if (entered === ADMIN_PASSWORD) {
+    isAdmin = true;
+    document.getElementById('login-modal').classList.remove('open');
+    document.body.style.overflow = '';
+    // Show admin controls
+    document.getElementById('open-settings').style.display = '';
+    document.getElementById('add-btn').style.display = '';
+    toast('Admin mode unlocked', 'success');
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('admin-password').value = '';
+    document.getElementById('admin-password').focus();
+  }
+}
+
+/* ══════════════════════════════════════
+   PUBLIC GALLERY LOADING
+   Always loads from your repo so visitors see images without needing to log in
+══════════════════════════════════════ */
+const PUBLIC_REPO  = 'keshavvyas004/astro-portfolio';
+const PUBLIC_BRANCH = 'main';
+
+async function loadPublicGallery() {
+  try {
+    const url = 'https://raw.githubusercontent.com/' + PUBLIC_REPO + '/' + PUBLIC_BRANCH + '/data.json?t=' + Date.now();
+    const r = await fetch(url);
+    if (r.ok) {
+      images = await r.json();
+    } else {
+      images = [];
+    }
+  } catch (e) {
+    images = [];
+  }
+  renderFilters();
+  renderGrid();
+}
+
 /* INIT */
-if (isConfigured()) loadFromGitHub();
-else { renderFilters(); renderGrid(); }
+loadPublicGallery();
 </script>
 </body>
 </html>
