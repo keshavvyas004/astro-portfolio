@@ -1,1 +1,25 @@
-[]
+[
+  {
+    "id": 1782129942669,
+    "ghPath": "images/ngc-helix-nebula-1782129933051.png",
+    "name": "NGC : Helix Nebula",
+    "type": "Nebula",
+    "desc": "",
+    "scope": "PlaneWave CDK24 corrected Dall-Kirkham Astrograph.",
+    "mount": "10Micron GM4000",
+    "camera": "FLI ProLine KAF-16803",
+    "focal": "3974",
+    "total": "3h",
+    "sub": "360s",
+    "gain": "",
+    "date": "2026-06-21",
+    "bortle": "",
+    "location": "Tenerife,spain",
+    "filters": [
+      "Ha",
+      "OIII",
+      "SII"
+    ],
+    "software": "SiriL"
+  }
+]
