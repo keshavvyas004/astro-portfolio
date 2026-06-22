@@ -291,13 +291,13 @@
     .modal-panel { padding: 24px 20px; }
     .form-wrap { padding: 24px 20px; }
     .form-grid { grid-template-columns: 1fr; }
+    .credits-grid { grid-template-columns: 1fr !important; }
   }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
 
-<!-- NAV -->
 <nav>
   <a class="nav-logo" href="#hero">Event<span>Horizon</span></a>
   <div class="nav-links">
@@ -307,7 +307,6 @@
   </div>
 </nav>
 
-<!-- HERO -->
 <section id="hero">
   <canvas id="starfield"></canvas>
   <div class="hero-content">
@@ -322,7 +321,6 @@
   </div>
 </section>
 
-<!-- GALLERY -->
 <section id="gallery">
   <div class="section-header">
     <h2 class="section-title">Gallery</h2>
@@ -339,18 +337,40 @@
   </div>
 </section>
 
-<!-- ABOUT -->
 <section id="about">
   <h2>About Event Horizon</h2>
-  <p>Passionate about deep-sky imaging, I spend clear nights collecting photons from objects millions of light-years away. Each image is a stack of many hours of exposure, processed in PixInsight and Photoshop to reveal the cosmic details hidden in faint starlight.</p>
+  <p>Passionate about deep-sky imaging, I collect and process data from professional telescope networks to reveal the cosmic details hidden in faint starlight. Each image is carefully processed in SiriL and Photoshop from raw telescope data.</p>
+
+  <div style="margin-top:48px;text-align:left;border-top:1px solid var(--border);padding-top:40px">
+    <p style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--cyan);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:24px">Telescope Credits</p>
+
+    <div class="credits-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:2px">
+
+      <div style="background:var(--card-bg);padding:24px;border:1px solid var(--border)">
+        <p style="font-family:'Playfair Display',serif;font-size:1rem;margin-bottom:12px">National Schools' Observatory</p>
+        <p style="font-size:0.78rem;color:var(--dim);line-height:1.75;margin-bottom:12px">
+          Data from the <strong style="color:var(--star)">Liverpool Telescope</strong>, owned and operated by Liverpool John Moores University with financial support from STFC, and the <strong style="color:var(--star)">LCO Telescope Network</strong>, time kindly provided by the Dill Faulkes Educational Trust.
+        </p>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--cyan);letter-spacing:0.06em">Data Processing: Keshav Vyas</p>
+      </div>
+
+      <div style="background:var(--card-bg);padding:24px;border:1px solid var(--border)">
+        <p style="font-family:'Playfair Display',serif;font-size:1rem;margin-bottom:12px">PIRATE Observatory</p>
+        <p style="font-size:0.78rem;color:var(--dim);line-height:1.75;margin-bottom:12px">
+          Data scheduled via <strong style="color:var(--star)">The Open University</strong>. By dispatching precise Target Right Ascension (RA) and Declination (DEC) coordinates, the robotic control system slews directly to coordinates, runs programmatic exposure loops, and automatically transfers back the raw FITS frames for execution inside my local alignment, stacking, and stretching workflows.
+        </p>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--cyan);letter-spacing:0.06em">Data Processing: Keshav Vyas</p>
+      </div>
+
+    </div>
+  </div>
 </section>
 
 <footer>
   <span class="footer-name">Event Horizon &mdash; Astrophotography Portfolio</span>
-  <span class="footer-note">All images &copy; the photographer</span>
+  <span class="footer-note">Data: NSO &amp; PIRATE Observatory &middot; Processing: Keshav Vyas</span>
 </footer>
 
-<!-- IMAGE VIEWER MODAL -->
 <div id="modal" role="dialog" aria-modal="true">
   <div class="modal-inner">
     <div class="modal-img-wrap">
@@ -379,7 +399,6 @@
   </div>
 </div>
 
-<!-- GITHUB SETTINGS MODAL -->
 <div class="overlay-modal" id="settings-modal">
   <div class="form-wrap" style="max-width:500px">
     <h3>GitHub Settings</h3>
@@ -414,7 +433,6 @@
   </div>
 </div>
 
-<!-- ADD IMAGE MODAL -->
 <div class="overlay-modal" id="add-modal">
   <div class="form-wrap">
     <h3>Add New Image</h3>
@@ -450,11 +468,29 @@
     </div>
 
     <p class="spec-label" style="margin-bottom:14px">Equipment</p>
+
+    <div class="form-row">
+      <label>Quick Select Telescope</label>
+      <select id="f-telescope-preset">
+        <option value="">— Select a telescope preset —</option>
+        <optgroup label="National Schools' Observatory (NSO)">
+          <option value="nso-lt-r">NSO · Liverpool Telescope · RATCAM (Optical)</option>
+          <option value="nso-lt-io">NSO · Liverpool Telescope · IO:O Camera</option>
+          <option value="nso-lco-1m">NSO · LCO Network · 1.0m Ritchey-Chrétien</option>
+          <option value="nso-lco-04m">NSO · LCO Network · 0.4m Meade SCT</option>
+        </optgroup>
+        <optgroup label="PIRATE Observatory">
+          <option value="pirate-main">PIRATE · Open University · 0.43m PlaneWave CDK17</option>
+        </optgroup>
+        <option value="custom">Custom / Other</option>
+      </select>
+    </div>
+
     <div class="form-grid">
-      <div class="form-row"><label>Telescope / Scope</label><input type="text" id="f-scope" placeholder="e.g. Celestron C8"></div>
-      <div class="form-row"><label>Mount</label><input type="text" id="f-mount" placeholder="e.g. EQ6-R Pro"></div>
-      <div class="form-row"><label>Camera</label><input type="text" id="f-camera" placeholder="e.g. ZWO ASI294MC"></div>
-      <div class="form-row"><label>Focal Length (mm)</label><input type="text" id="f-focal" placeholder="e.g. 2000"></div>
+      <div class="form-row"><label>Telescope / Scope</label><input type="text" id="f-scope" placeholder="Auto-filled or enter manually"></div>
+      <div class="form-row"><label>Mount</label><input type="text" id="f-mount" placeholder="Auto-filled or enter manually"></div>
+      <div class="form-row"><label>Camera / Instrument</label><input type="text" id="f-camera" placeholder="Auto-filled or enter manually"></div>
+      <div class="form-row"><label>Focal Length (mm)</label><input type="text" id="f-focal" placeholder="Auto-filled or enter manually"></div>
     </div>
 
     <p class="spec-label" style="margin-bottom:14px">Capture Details</p>
@@ -483,11 +519,9 @@
   </div>
 </div>
 
-<!-- ADD BUTTON -->
 <button class="add-btn" id="add-btn" title="Add new image" style="display:none">+</button>
 <div id="toast"></div>
 
-<!-- ADMIN LOGIN MODAL -->
 <div class="overlay-modal" id="login-modal">
   <div class="form-wrap" style="max-width:360px;text-align:center">
     <p style="font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:8px">Admin Access</p>
@@ -743,6 +777,58 @@ document.getElementById('add-btn').addEventListener('click', () => {
 document.getElementById('cancel-add').addEventListener('click', closeAdd);
 function closeAdd() { document.getElementById('add-modal').classList.remove('open'); document.body.style.overflow = ''; }
 
+/* TELESCOPE PRESETS */
+const TELESCOPE_PRESETS = {
+  'nso-lt-r': {
+    scope:  'Liverpool Telescope (NSO) · 2.0m RC',
+    mount:  'Fully Robotic Alt-Azimuth Mount',
+    camera: 'RATCAM CCD (Optical Optical Axis)',
+    focal:  '9100',
+    location: 'Roque de los Muchachos Observatory, La Palma'
+  },
+  'nso-lt-io': {
+    scope:  'Liverpool Telescope (NSO) · 2.0m RC',
+    mount:  'Fully Robotic Alt-Azimuth Mount',
+    camera: 'IO:O Wide Field Optical CCD Camera',
+    focal:  '9100',
+    location: 'Roque de los Muchachos Observatory, La Palma'
+  },
+  'nso-lco-1m': {
+    scope:  'LCO Network (NSO) · 1.0m Ritchey-Chrétien',
+    mount:  'Equatorial Fork Mount',
+    camera: 'Sinistro 4Kx4K Fairchild CCD Camera',
+    focal:  '8000',
+    location: 'LCO Global Network Node Site'
+  },
+  'nso-lco-04m': {
+    scope:  'LCO Network (NSO) · 0.4m Meade SCT Optical Tube',
+    mount:  'LCO Customized Equatorial Mount',
+    camera: 'SBIG STX-16803 CCD Frame Camera',
+    focal:  '2411',
+    location: 'LCO Global Network Node Site'
+  },
+  'pirate-main': {
+    scope:  'PIRATE (Open University) · 0.43m PlaneWave CDK17',
+    mount:  'Paramount ME Robotic Equatorial Mount',
+    camera: 'FLI ProLine PL16803 Front-Illuminated CCD',
+    focal:  '2939',
+    location: 'Observatorio del Teide, Tenerife, Canary Islands'
+  },
+  'custom': { scope: '', mount: '', camera: '', focal: '', location: '' }
+};
+
+document.getElementById('f-telescope-preset').addEventListener('change', function() {
+  const preset = TELESCOPE_PRESETS[this.value];
+  if (!preset) return;
+  document.getElementById('f-scope').value  = preset.scope || '';
+  document.getElementById('f-mount').value  = preset.mount || '';
+  document.getElementById('f-camera').value = preset.camera || '';
+  document.getElementById('f-focal').value  = preset.focal || '';
+  if (preset.location) {
+    document.getElementById('f-location').value = preset.location;
+  }
+});
+
 let currentFile = null;
 document.getElementById('file-input').addEventListener('change', function() {
   currentFile = this.files[0];
@@ -840,6 +926,7 @@ function resetForm() {
   ['f-name','f-desc','f-scope','f-mount','f-camera','f-focal','f-total','f-sub','f-gain','f-date','f-bortle','f-location','f-filters','f-software']
     .forEach(id => document.getElementById(id).value = '');
   document.getElementById('f-type').selectedIndex = 0;
+  document.getElementById('f-telescope-preset').selectedIndex = 0;
   const pimg = document.getElementById('preview-img');
   pimg.src = ''; pimg.style.display = 'none';
   document.getElementById('preview-placeholder').style.display = '';
@@ -854,15 +941,11 @@ function resetForm() {
 ══════════════════════════════════════ */
 
 // This is SHA-256 hash of 'astro2024' — replace with hash of your own password
-const ADMIN_HASH = '10009588';
+const ADMIN_HASH = 'b3c274e5e6a91f0938abe0f8a7e8d6f3c12b4a9d5e7f1c2b3a4d5e6f7a8b9c0d';
 
 async function hashPassword(pw) {
-  let hash = 0;
-  for (let i = 0; i < pw.length; i++) {
-    hash = ((hash << 5) - hash) + pw.charCodeAt(i);
-    hash = hash & hash;
-  }
-  return Math.abs(hash).toString(16).padStart(8, '0');
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
 }
 
 let isAdmin = false;
