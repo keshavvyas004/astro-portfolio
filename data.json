@@ -1,11 +1,34 @@
 [
   {
+    "id": 1782415168548,
+    "ghPath": "images/m27-dumbbell-nebula-1782415162901.png",
+    "name": "M27 :  Dumbbell Nebula",
+    "type": "Nebula",
+    "desc": "Messier 27 (M27), commonly known as the Dumbbell Nebula, is a world-famous planetary nebula located roughly 1,200 to 1,360 light-years away in the northern constellation of Vulpecula (The Fox)",
+    "scope": "PIRATE (Open University) · PlaneWave CDK24",
+    "mount": "10Micron GM4000",
+    "camera": "FLI (Finger Lakes Instrumentation) ProLine KAF-16803 CCD",
+    "focal": "3974",
+    "total": "2h",
+    "sub": "360",
+    "gain": "",
+    "date": "2026-06-19",
+    "bortle": "",
+    "location": "Observatorio del Teide, Tenerife, Canary Islands",
+    "filters": [
+      "Ha",
+      "OIII",
+      "SII"
+    ],
+    "software": "SiriL,GIMP"
+  },
+  {
     "id": 1782151445727,
     "ghPath": "images/ngc-6960-veil-nebula-1782151436196.png",
     "name": "NGC 6960 : Veil Nebula",
     "type": "Nebula",
     "desc": "The Veil Nebula is one of the most spectacular and detailed supernova remnants in the night sky. Located approximately 2,100 light-years away in the constellation Cygnus (the Swan), it forms the visible portions of the Cygnus Loop.",
-    "scope": "PIRATE (Open University) · PlaneWave CDK24",
+    "scope": "PIRATE (Open University) Â· PlaneWave CDK24",
     "mount": "10Micron GM4000",
     "camera": "FLI (Finger Lakes Instrumentation) ProLine KAF-16803 CCD",
     "focal": "3974",
